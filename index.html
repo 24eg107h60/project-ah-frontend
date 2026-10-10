@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoCare AI - Vehicle Service & Maintenance Prediction Platform</title>
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+    <div class="container-fluid px-lg-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <div class="brand-icon">
+          <i class="bi bi-cpu-fill"></i>
+        </div>
+        <div>
+          <span class="fw-bold tracking-tight">AutoCare AI</span>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 d-none d-sm-inline-block small">Prediction Platform</span>
+        </div>
+      </a>
+
+      <!-- Quick Demo Login Pills in Navbar for effortless evaluator experience -->
+      <div class="d-none d-md-flex align-items-center gap-2 me-auto ms-4">
+        <span class="text-white-50 small me-1">Demo Accounts:</span>
+        <button id="demoOwnerBtn" class="btn btn-sm btn-outline-light demo-badge-btn" title="Login as Alex Morgan (Vehicle Owner)">
+          <i class="bi bi-person-fill me-1 text-info"></i>Owner (Alex)
+        </button>
+        <button id="demoAdminBtn" class="btn btn-sm btn-outline-light demo-badge-btn" title="Login as Fleet Operations Admin">
+          <i class="bi bi-shield-lock-fill me-1 text-warning"></i>Admin
+        </button>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <!-- Notification Bell -->
+        <button id="notificationBellBtn" class="btn btn-outline-light position-relative rounded-circle p-2" style="width: 40px; height: 40px;">
+          <i class="bi bi-bell-fill"></i>
+          <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+            0
+          </span>
+        </button>
+
+        <!-- Authenticated User Display -->
+        <div id="navUserActions" class="dropdown d-none">
+          <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle fs-5"></i>
+            <span id="currentUserDisplay" class="fw-semibold">User</span>
+            <span id="currentUserRoleBadge" class="badge bg-primary ms-1">OWNER</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li><a class="dropdown-item" href="#" data-nav-view="view-dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+            <li><a class="dropdown-item" href="#" data-nav-view="view-vehicles"><i class="bi bi-car-front me-2"></i>My Vehicles</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a id="logoutBtn" class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+          </ul>
+        </div>
+
+        <!-- Guest / Sign In Button -->
+        <div id="navAuthActions">
+          <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#authModal">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Sign In / Register
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Pills Menu -->
+  <div class="bg-white border-bottom shadow-sm">
+    <div class="container-fluid px-lg-4 py-2">
+      <ul class="nav nav-pills flex-nowrap overflow-auto gap-1" id="mainNavTabs">
+        <li class="nav-item">
+          <a class="nav-link active" href="#" data-nav-view="view-dashboard">
+            <i class="bi bi-grid-1x2 me-1"></i>Dashboard Overview
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-nav-view="view-vehicles">
+            <i class="bi bi-car-front-fill me-1"></i>My Vehicles
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-nav-view="view-prediction">
+            <i class="bi bi-cpu me-1"></i>Maintenance Predictor
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-nav-view="view-bookings">
+            <i class="bi bi-calendar2-check-fill me-1"></i>Service Bookings
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-nav-view="view-reports">
+            <i class="bi bi-bar-chart-line-fill me-1"></i>History & Cost Reports
+          </a>
+        </li>
+        <li class="nav-item">
+          <a id="navAdminTab" class="nav-link text-danger d-none" href="#" data-nav-view="view-admin">
+            <i class="bi bi-shield-shaded me-1"></i>Admin Control Center
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Main Views Container -->
+  <main class="container-fluid px-lg-4 py-4 flex-grow-1">
+
+    <!-- ================= VIEW 1: DASHBOARD OVERVIEW ================= -->
+    <section id="view-dashboard" class="app-view-container">
+      <!-- Welcome Banner -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+          <h3 class="fw-bold mb-1">Fleet Maintenance Intelligence</h3>
+          <p class="text-muted mb-0">Automated multi-factor wear prediction, service intervals, and scheduling.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#vehicleModal">
+            <i class="bi bi-plus-lg me-1"></i>Add Vehicle
+          </button>
+          <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#bookingModal">
+            <i class="bi bi-calendar-plus me-1"></i>Book Service
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+          <div class="card card-stat p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+              <div class="stat-icon bg-primary-subtle text-primary">
+                <i class="bi bi-car-front"></i>
+              </div>
+              <div>
+                <span class="text-muted small">Total Vehicles</span>
+                <h3 class="fw-bold mb-0" id="dashTotalVehicles">0</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+          <div class="card card-stat p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+              <div class="stat-icon bg-success-subtle text-success">
+                <i class="bi bi-heart-pulse"></i>
+              </div>
+              <div>
+                <span class="text-muted small">Fleet Health Score</span>
+                <h3 class="fw-bold mb-0 text-success" id="dashFleetHealth">100%</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+          <div class="card card-stat p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+              <div class="stat-icon bg-warning-subtle text-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+              </div>
+              <div>
+                <span class="text-muted small">Active Alerts</span>
+                <h3 class="fw-bold mb-0 text-warning" id="dashActiveAlerts">0</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+          <div class="card card-stat p-3 h-100">
+            <div class="d-flex align-items-center gap-3">
+              <div class="stat-icon bg-info-subtle text-info">
+                <i class="bi bi-calendar-event"></i>
+              </div>
+              <div>
+                <span class="text-muted small">Upcoming Bookings</span>
+                <h3 class="fw-bold mb-0 text-info" id="dashUpcomingBookings">0</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Alerts Section -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-bell-fill text-warning"></i>Predictive Maintenance Alerts
+          </h5>
+          <span class="badge bg-light text-dark border">Rule-Engine Live Feed</span>
+        </div>
+        <div class="card-body p-4">
+          <div id="dashAlertsList">
+            <div class="text-center py-4 text-muted">
+              <div class="spinner-border spinner-border-sm text-primary me-2"></div>Analyzing vehicle maintenance intervals...
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 2: VEHICLE MANAGEMENT ================= -->
+    <section id="view-vehicles" class="app-view-container d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+          <h3 class="fw-bold mb-1">Vehicle Garage</h3>
+          <p class="text-muted mb-0">Manage vehicle fleet specifications, odometers, and service records.</p>
+        </div>
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#vehicleModal" onclick="document.getElementById('vehicleForm').reset(); document.getElementById('vehicleIdInput').value = ''; document.getElementById('vehicleModalTitle').textContent = 'Add New Vehicle';">
+          <i class="bi bi-plus-lg me-1"></i>Register Vehicle
+        </button>
+      </div>
+
+      <div class="row g-4" id="vehiclesGrid">
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-primary"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 3: MAINTENANCE PREDICTOR ================= -->
+    <section id="view-prediction" class="app-view-container d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+          <h3 class="fw-bold mb-1">Rule-Based Predictive Diagnostics</h3>
+          <p class="text-muted mb-0">Multi-point component wear calculation using odometer readings and time intervals.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label for="predictionVehicleSelect" class="form-label text-nowrap mb-0 fw-semibold">Select Vehicle:</label>
+          <select id="predictionVehicleSelect" class="form-select w-auto shadow-sm">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Top Prediction Summary Card -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+          <div class="row align-items-center g-4">
+            <!-- Circular Health Score -->
+            <div class="col-md-4 text-center border-md-end">
+              <div id="predictionHealthMeter" class="health-meter-circle high mb-2">
+                <span id="predictionHealthScoreVal" class="health-meter-value">100%</span>
+                <span class="small fw-semibold">HEALTH</span>
+              </div>
+              <span id="predictionHealthUrgencyBadge" class="badge badge-healthy">HEALTHY</span>
+            </div>
+
+            <!-- Vehicle Header Info & Next Steps -->
+            <div class="col-md-5">
+              <div id="predictionVehicleHeader">
+                <h4 class="fw-bold mb-1">Toyota Camry SE</h4>
+                <span class="badge bg-dark me-2">ABC-7890</span>
+                <span class="badge bg-secondary me-2">PETROL</span>
+                <span class="text-muted"><i class="bi bi-speedometer me-1"></i>48,500 km</span>
+              </div>
+              <div class="mt-3">
+                <span class="text-muted small d-block">Estimated Overdue / Upcoming Repair Cost:</span>
+                <h3 class="fw-bold text-primary mb-0" id="predictionTotalEstimatedCost">$0.00</h3>
+              </div>
+            </div>
+
+            <!-- Quick Action button -->
+            <div class="col-md-3 text-md-end">
+              <button class="btn btn-primary-custom w-100 mb-2" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                <i class="bi bi-calendar-check me-1"></i>Schedule Service
+              </button>
+              <button class="btn btn-outline-secondary w-100" onclick="App.openMileageModal(App.selectedVehicleId, App.currentReport ? App.currentReport.currentMileage : 0)">
+                <i class="bi bi-speedometer2 me-1"></i>Update Mileage
+              </button>
+            </div>
+          </div>
+
+          <!-- Alert callout if overdue -->
+          <div id="predictionAlertsSummary" class="mt-4 d-none">
+            <!-- Dynamic alerts -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 7 Systems Component Diagnostic Cards -->
+      <h5 class="fw-bold mb-3"><i class="bi bi-sliders me-2 text-primary"></i>System & Component Degradation Analysis</h5>
+      <div class="row g-3" id="predictionComponentsContainer">
+        <!-- Component cards rendered by app.js -->
+      </div>
+    </section>
+
+    <!-- ================= VIEW 4: SERVICE BOOKINGS ================= -->
+    <section id="view-bookings" class="app-view-container d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+          <h3 class="fw-bold mb-1">Service Appointments</h3>
+          <p class="text-muted mb-0">Book maintenance slots, view workshop statuses, and track pending repairs.</p>
+        </div>
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#bookingModal">
+          <i class="bi bi-plus-lg me-1"></i>Book New Appointment
+        </button>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0" id="bookingsList">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 5: COST REPORTS & HISTORY ================= -->
+    <section id="view-reports" class="app-view-container d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+          <h3 class="fw-bold mb-1">Service History & Cost Analytics</h3>
+          <p class="text-muted mb-0">Review past invoices, maintenance expenditures, and category breakdowns.</p>
+        </div>
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#recordModal">
+          <i class="bi bi-journal-plus me-1"></i>Log Service Record
+        </button>
+      </div>
+
+      <!-- Expenditure KPI Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card card-stat p-3 h-100">
+            <span class="text-muted small">Total Fleet Expenditure</span>
+            <h2 class="fw-bold text-primary mb-0" id="reportTotalExp">$0.00</h2>
+            <small class="text-muted mt-1"><i class="bi bi-cash-stack me-1"></i>All logged services</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-stat p-3 h-100">
+            <span class="text-muted small">Total Services Performed</span>
+            <h2 class="fw-bold text-dark mb-0" id="reportTotalCount">0</h2>
+            <small class="text-muted mt-1"><i class="bi bi-wrench me-1"></i>Recorded maintenance visits</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-stat p-3 h-100">
+            <span class="text-muted small">Average Cost Per Visit</span>
+            <h2 class="fw-bold text-success mb-0" id="reportAvgCost">$0.00</h2>
+            <small class="text-muted mt-1"><i class="bi bi-calculator me-1"></i>Overall fleet average</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2 text-primary"></i>Monthly Expenditure Trend</h6>
+            <div style="height: 260px;">
+              <canvas id="monthlySpendChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2 text-primary"></i>Spending by Service Category</h6>
+            <div style="height: 260px;">
+              <canvas id="categorySpendChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-4 p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2 text-primary"></i>Cost Comparison by Vehicle</h6>
+            <div style="height: 220px;">
+              <canvas id="vehicleSpendChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Records History Table -->
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Complete Maintenance History Log</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table custom-table mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Vehicle</th>
+                  <th>Service Type</th>
+                  <th>Odometer</th>
+                  <th>Cost</th>
+                  <th>Invoice #</th>
+                  <th>Service Center</th>
+                </tr>
+              </thead>
+              <tbody id="reportRecordsTable">
+                <!-- Records populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 6: ADMIN CONTROL CENTER ================= -->
+    <section id="view-admin" class="app-view-container d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+          <h3 class="fw-bold text-danger mb-1"><i class="bi bi-shield-lock-fill me-2"></i>Admin Operations Center</h3>
+          <p class="text-muted mb-0">Platform-wide management of users, vehicle fleet health, bookings, and revenue.</p>
+        </div>
+        <span class="badge bg-danger fs-6 px-3 py-2">Administrator Access</span>
+      </div>
+
+      <!-- Admin Stat Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-2">
+          <div class="card card-stat p-3 text-center">
+            <span class="text-muted small">Registered Users</span>
+            <h3 class="fw-bold mb-0 text-primary" id="adminTotalUsers">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <div class="card card-stat p-3 text-center">
+            <span class="text-muted small">Fleet Vehicles</span>
+            <h3 class="fw-bold mb-0 text-dark" id="adminTotalVehicles">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <div class="card card-stat p-3 text-center">
+            <span class="text-muted small">Pending Bookings</span>
+            <h3 class="fw-bold mb-0 text-warning" id="adminPendingBookings">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card card-stat p-3 text-center">
+            <span class="text-muted small">Critical Overdue Vehicles</span>
+            <h3 class="fw-bold mb-0 text-danger" id="adminOverdueVehicles">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card card-stat p-3 text-center">
+            <span class="text-muted small">Total Platform Revenue</span>
+            <h3 class="fw-bold mb-0 text-success" id="adminTotalRevenue">$0.00</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookings Approval & Management -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0"><i class="bi bi-calendar-check-fill me-2 text-primary"></i>Service Bookings Workflow Management</h5>
+          <span class="badge bg-primary">Live Status Updates</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table custom-table mb-0">
+              <thead>
+                <tr>
+                  <th>Booking #</th>
+                  <th>Customer</th>
+                  <th>Vehicle</th>
+                  <th>Services</th>
+                  <th>Date</th>
+                  <th>Cost</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminBookingsTable">
+                <!-- Bookings populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet Health Monitoring Across All Users -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-heart-pulse-fill me-2 text-danger"></i>Fleet-Wide Health Diagnostics</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table custom-table mb-0">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Plate</th>
+                  <th>Odometer</th>
+                  <th>Health Score</th>
+                  <th>Condition</th>
+                  <th>Critical Items</th>
+                </tr>
+              </thead>
+              <tbody id="adminFleetHealthTable">
+                <!-- Fleet health populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Management Table -->
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-info"></i>User Accounts & Roles</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table custom-table mb-0">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTable">
+                <!-- Users populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. Authentication Modal -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header bg-light border-bottom">
+          <ul class="nav nav-tabs card-header-tabs w-100" id="authTabs">
+            <li class="nav-item flex-fill text-center">
+              <button class="nav-link active w-100 fw-bold" data-bs-toggle="tab" data-bs-target="#loginTab">Sign In</button>
+            </li>
+            <li class="nav-item flex-fill text-center">
+              <button class="nav-link w-100 fw-bold" data-bs-toggle="tab" data-bs-target="#registerTab">Register</button>
+            </li>
+          </ul>
+          <button type="button" class="btn-close ms-2" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <!-- Quick 1-Click Login Prompts -->
+          <div class="bg-light p-3 rounded-3 mb-3 border text-center">
+            <span class="small text-muted d-block mb-2">⚡ 1-Click Test Login:</span>
+            <div class="d-flex gap-2 justify-content-center">
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="App.quickLogin('user@autocare.com', 'user123')">
+                <i class="bi bi-person me-1"></i>Vehicle Owner (Alex)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="App.quickLogin('admin@autocare.com', 'admin123')">
+                <i class="bi bi-shield-lock me-1"></i>Platform Admin
+              </button>
+            </div>
+          </div>
+
+          <div class="tab-content">
+            <!-- Login Form -->
+            <div class="tab-pane fade show active" id="loginTab">
+              <form id="loginForm">
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Email Address</label>
+                  <input type="email" id="loginEmail" class="form-control" value="user@autocare.com" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Password</label>
+                  <input type="password" id="loginPassword" class="form-control" value="user123" required>
+                </div>
+                <button type="submit" class="btn btn-primary-custom w-100 py-2">Sign In</button>
+              </form>
+            </div>
+
+            <!-- Register Form -->
+            <div class="tab-pane fade" id="registerTab">
+              <form id="registerForm">
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Full Name</label>
+                  <input type="text" id="regName" class="form-control" placeholder="e.g. John Doe" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Email Address</label>
+                  <input type="email" id="regEmail" class="form-control" placeholder="john@example.com" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Password</label>
+                  <input type="password" id="regPassword" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Phone Number</label>
+                  <input type="tel" id="regPhone" class="form-control" placeholder="+1 555-0100">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Account Role</label>
+                  <select id="regRole" class="form-select">
+                    <option value="ROLE_USER">Vehicle Owner</option>
+                    <option value="ROLE_ADMIN">Service Center Admin</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary-custom w-100 py-2">Create Account</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Vehicle Add / Edit Modal -->
+  <div class="modal fade" id="vehicleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <form id="vehicleForm">
+          <input type="hidden" id="vehicleIdInput">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold" id="vehicleModalTitle">Add New Vehicle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Vehicle Make *</label>
+                <input type="text" id="vehMake" class="form-control" placeholder="e.g. Toyota, Honda, Ford" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Vehicle Model *</label>
+                <input type="text" id="vehModel" class="form-control" placeholder="e.g. Camry, Civic, F-150" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Manufacture Year *</label>
+                <input type="number" id="vehYear" class="form-control" min="1980" max="2027" value="2022" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">License Plate *</label>
+                <input type="text" id="vehPlate" class="form-control" placeholder="e.g. ABC-1234" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Fuel Type</label>
+                <select id="vehFuel" class="form-select">
+                  <option value="PETROL">Petrol / Gasoline</option>
+                  <option value="DIESEL">Diesel</option>
+                  <option value="ELECTRIC">Electric (EV)</option>
+                  <option value="HYBRID">Hybrid</option>
+                  <option value="CNG">CNG</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">VIN (Vehicle Identification Number)</label>
+                <input type="text" id="vehVin" class="form-control" placeholder="17-character VIN">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Current Mileage (km) *</label>
+                <input type="number" id="vehMileage" class="form-control" min="0" placeholder="e.g. 45000" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Avg. Monthly Mileage (km)</label>
+                <input type="number" id="vehAvgMileage" class="form-control" min="100" value="1200">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Last Recorded Service Date</label>
+                <input type="date" id="vehLastDate" class="form-control">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Mileage at Last Service (km)</label>
+                <input type="number" id="vehLastMileage" class="form-control" min="0" value="0">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary-custom px-4">Save Vehicle</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Update Mileage Modal -->
+  <div class="modal fade" id="mileageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-4">
+        <form id="updateMileageForm">
+          <input type="hidden" id="mileageVehicleId">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold"><i class="bi bi-speedometer2 me-2 text-primary"></i>Update Odometer Reading</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <p class="text-muted small">Current Odometer: <strong id="currentOdometerDisplay" class="text-dark">0 km</strong></p>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">New Current Mileage (km) *</label>
+              <input type="number" id="newMileageInput" class="form-control form-control-lg" required>
+              <small class="text-muted">Updating mileage recalculates degradation and may trigger maintenance reminders.</small>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary-custom px-4">Save Mileage</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Service Booking Appointment Modal -->
+  <div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <form id="bookingForm">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold"><i class="bi bi-calendar2-plus me-2 text-primary"></i>Book Service Appointment</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label small fw-semibold">Select Vehicle *</label>
+                <select id="bookingVehicleSelect" class="form-select" required></select>
+              </div>
+
+              <!-- Multi-select service checklist -->
+              <div class="col-12">
+                <label class="form-label small fw-semibold mb-2">Select Services Required *</label>
+                <div class="row g-2 border rounded-3 p-3 bg-light">
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="OIL_CHANGE" id="chkOil">
+                      <label class="form-check-label" for="chkOil">Oil Change & Filter ($75)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="BRAKE_INSPECTION" id="chkBrakes">
+                      <label class="form-check-label" for="chkBrakes">Brake Pads & Rotors ($160)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="BATTERY_MAINTENANCE" id="chkBattery">
+                      <label class="form-check-label" for="chkBattery">Battery & Electrical ($110)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="TIRE_ROTATION" id="chkTires">
+                      <label class="form-check-label" for="chkTires">Tire Rotation & Balance ($45)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="AIR_FILTER" id="chkFilter">
+                      <label class="form-check-label" for="chkFilter">Air & Cabin Filters ($55)</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="TRANSMISSION_FLUID" id="chkTrans">
+                      <label class="form-check-label" for="chkTrans">Transmission Fluid Service ($210)</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="form-check">
+                      <input class="form-check-input service-checkbox" type="checkbox" value="GENERAL_SERVICING" id="chkGeneral">
+                      <label class="form-check-label" for="chkGeneral">Comprehensive 50-Point General Service ($175)</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Preferred Appointment Date *</label>
+                <input type="date" id="bookDate" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Preferred Time Slot *</label>
+                <select id="bookTime" class="form-select" required>
+                  <option value="09:00 AM">09:00 AM - 10:30 AM</option>
+                  <option value="11:00 AM">11:00 AM - 12:30 PM</option>
+                  <option value="02:00 PM">02:00 PM - 03:30 PM</option>
+                  <option value="04:00 PM">04:00 PM - 05:30 PM</option>
+                </select>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label small fw-semibold">Authorized Service Center *</label>
+                <select id="bookCenter" class="form-select" required>
+                  <option value="Downtown AutoCare Hub">Downtown AutoCare Hub (Main Facility)</option>
+                  <option value="Metro Express Pitstop">Metro Express Pitstop (North Ave)</option>
+                  <option value="Westside Certified Workshop">Westside Certified Workshop (West Blvd)</option>
+                </select>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label small fw-semibold">Additional Notes / Symptoms</label>
+                <textarea id="bookNotes" class="form-control" rows="2" placeholder="Mention any unusual sounds, vibration, or warning lights..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary-custom px-4">Confirm Booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Manual Log Service Record Modal -->
+  <div class="modal fade" id="recordModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-4">
+        <form id="recordForm">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-medical me-2 text-primary"></i>Log Completed Service Record</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Vehicle *</label>
+                <select id="recordVehicleSelect" class="form-select" required></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Service Type *</label>
+                <select id="recType" class="form-select" required>
+                  <option value="OIL_CHANGE">Oil Change & Filter</option>
+                  <option value="BRAKE_INSPECTION">Brake Pads & Rotors</option>
+                  <option value="BATTERY_MAINTENANCE">Battery & Electrical</option>
+                  <option value="TIRE_ROTATION">Tire Rotation & Balance</option>
+                  <option value="AIR_FILTER">Air & Cabin Filters</option>
+                  <option value="TRANSMISSION_FLUID">Transmission Fluid</option>
+                  <option value="GENERAL_SERVICING">General Servicing</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Service Date *</label>
+                <input type="date" id="recDate" class="form-control" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Odometer Mileage (km) *</label>
+                <input type="number" id="recMileage" class="form-control" min="0" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Cost Incurred ($) *</label>
+                <input type="number" id="recCost" class="form-control" step="0.01" min="0" placeholder="e.g. 120.00" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Invoice / Receipt #</label>
+                <input type="text" id="recInvoice" class="form-control" placeholder="INV-XXXXX">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Service Center / Mechanic</label>
+                <input type="text" id="recCenter" class="form-control" placeholder="Downtown AutoCare Hub">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Description of Work Performed</label>
+                <input type="text" id="recDescription" class="form-control" placeholder="Replaced brake pads, rotor resurfaced...">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Technician Notes</label>
+                <textarea id="recNotes" class="form-control" rows="2" placeholder="Wear observations, fluid checks..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary-custom px-4">Save Service Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Admin Booking Status Update Modal -->
+  <div class="modal fade" id="adminStatusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-4">
+        <form id="adminBookingStatusForm">
+          <input type="hidden" id="adminBookingId">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold"><i class="bi bi-gear-fill me-2 text-danger"></i>Manage Booking Workflow</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Update Status *</label>
+              <select id="adminBookingStatusSelect" class="form-select" required>
+                <option value="PENDING">PENDING</option>
+                <option value="CONFIRMED">CONFIRMED (Appointment Accepted)</option>
+                <option value="IN_PROGRESS">IN_PROGRESS (Vehicle in Workshop)</option>
+                <option value="COMPLETED">COMPLETED (Service Finished & Invoiced)</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
+              <small class="text-muted">Setting status to COMPLETED automatically generates Service History records and resets component intervals.</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Final Invoiced Cost ($)</label>
+              <input type="number" id="adminFinalCostInput" class="form-control" step="0.01" min="0">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Technician Notes</label>
+              <textarea id="adminTechNotesInput" class="form-control" rows="3" placeholder="Enter findings, parts replaced, multi-point check results..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-danger px-4">Update Booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Notifications Center Modal -->
+  <div class="modal fade" id="notificationsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="bi bi-bell-fill me-2 text-warning"></i>Maintenance & Booking Reminders</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="notificationsList">
+          <!-- Dynamic notifications -->
+        </div>
+        <div class="modal-footer border-top d-flex justify-content-between">
+          <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary">Mark All As Read</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Alerts Container -->
+  <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+  <!-- Bootstrap 5.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js 4.4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- App Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
